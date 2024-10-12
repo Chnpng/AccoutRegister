@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้อมูลสมาชิก</title>
+    <title>โปรไฟล์</title>
     <!-- นำเข้า Tailwind CSS สำหรับการออกแบบ -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- นำเข้า LIFF SDK สำหรับการเชื่อมต่อกับ LINE -->
@@ -15,7 +15,7 @@
 
 <body class="bg-slate-300 flex items-center justify-center  h-screen p-6">
     <div class="bg-white max-w-sm w-full text-slate-800 p-10 rounded-xl shadow-md">
-        <h2 class="text-lg text-center mb-4">ข้อมูลสมาชิก</h2>
+        <h2 class="text-lg text-center mb-4">ข้อมูลพนักงาน</h2>
         <form id="edit-form">
             <!-- ช่องสำหรับเก็บข้อมูล ID ซ่อนอยู่ -->
             <input type="hidden" id="edit-id">
@@ -38,21 +38,21 @@
                 <label for="edit-image" class="block text-sm">อัปโหลดรูปภาพ</label>
                 <input type="file" id="edit-image" class="w-full border px-2 py-1 rounded-xl" disabled>
             </div>
-            <!-- ฟิลด์สำหรับกรอกชื่อสมาชิก -->
+            <!-- ฟิลด์สำหรับกรอกชื่อพนักงาน -->
             <div class="mb-4">
-                <label for="edit-name" class="block text-sm">ชื่อสมาชิก</label>
+                <label for="edit-name" class="block text-sm">ชื่อพนักงาน</label>
                 <input type="text" id="edit-name" class="w-full text-slate-800 border px-2 py-1 rounded-xl" disabled>
             </div>
-            <!-- ฟิลด์สำหรับกรอกเบอร์โทรศัพท์ -->
+            <!-- ฟิลด์สำหรับกรอกรหัสพนักงาน -->
             <div class="mb-4">
-                <label for="edit-phone" class="block text-sm">เบอร์โทรศัพท์</label>
-                <input type="text" id="edit-phone" class="w-full text-slate-800 border px-2 py-1 rounded-xl"
+                <label for="edit-employeeID" class="block text-sm">รหัสพนักงาน</label>
+                <input type="text" id="edit-employeeID" class="w-full text-slate-800 border px-2 py-1 rounded-xl"
                     disabled>
             </div>
-            <!-- ฟิลด์สำหรับกรอกอีเมล -->
+            <!-- ฟิลด์สำหรับกรอกแผนก -->
             <div class="mb-4">
-                <label for="edit-email" class="block text-sm">E-mail</label>
-                <input type="text" id="edit-email" class="w-full text-slate-800 border px-2 py-1 rounded-xl"
+                <label for="edit-department" class="block text-sm">แผนก</label>
+                <input type="text" id="edit-department" class="w-full text-slate-800 border px-2 py-1 rounded-xl"
                     disabled>
             </div>
             <!-- ปุ่มสำหรับแก้ไขข้อมูล ยกเลิก และบันทึก -->
@@ -69,218 +69,227 @@
 
     <script>
 
-        const WEB_APP_URL = 'xxxxxxxx Google app script member XXXXXXX'; 
-        const LIFF_ID = 'xxxxxxxx LINE LIFF id XXXXXXX'; // LIFF ID
+        // ลิ้งจาก ระบบสมาชิก
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz8O2wNyLVvdm801AOz6KHoPAgE64RVIE2Jcu53cF8ujgUYtAAHis9k61yuMXlMu6wm/exec'; 
+        // Liff ไอดีไล์เรียกใช้หน้าข้อมูลส่วนตัว
+        const LIFF_ID = '2006172571-8MD03d00'; // LIFF ID
+
 
         let latestData = {};
 
+        // เริ่มต้นด้วยการล็อกฟอร์มและซ่อนปุ่ม
         window.onload = async () => {
-            await initializeLiff(); 
-            toggleFormEditing(false); 
+            await initializeLiff(); // เริ่มต้น LIFF และค้นหาข้อมูลทันทีที่ได้ userId
+            toggleFormEditing(false); // ล็อกฟอร์มในตอนเริ่มต้นและซ่อนปุ่ม
         };
 
+        // ฟังก์ชันสำหรับเริ่มต้น LIFF
         async function initializeLiff() {
             try {
-                await liff.init({ liffId: LIFF_ID });
+                await liff.init({ liffId: `${LIFF_ID}` }); // ใส่ LIFF ID ของคุณที่นี่
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
-                    const userlineId = profile.userId;
-                    searchDataByUserlineId(userlineId);
+                    const userlineId = profile.userId; // ดึง userId จากโปรไฟล์
+                    searchDataByUserlineId(userlineId); // ค้นหาข้อมูลตาม userId
                 } else {
-                    liff.login();
+                    liff.login(); // ถ้ายังไม่ได้เข้าสู่ระบบ ให้เข้าสู่ระบบ
                 }
             } catch (error) {
                 console.error('LIFF Initialization failed', error);
             }
         }
 
+        // ฟังก์ชันค้นหาข้อมูลตาม userlineId
         async function searchDataByUserlineId(userlineId) {
             try {
+                // แสดงสปริ้นเมื่อกำลังโหลดข้อมูล
                 Swal.fire({
                     title: 'Loading...',
                     text: 'กำลังโหลดข้อมูล, กรุณารอสักครู่...',
                     allowOutsideClick: false,
                     didOpen: () => {
-                        Swal.showLoading(); 
+                        Swal.showLoading(); // แสดง spinner
                     }
                 });
 
-                const response = await fetch(WEB_APP_URL);
+                const response = await fetch(`https://script.google.com/macros/s/AKfycbz8O2wNyLVvdm801AOz6KHoPAgE64RVIE2Jcu53cF8ujgUYtAAHis9k61yuMXlMu6wm/exec?userId=${userId}`);
                 const data = await response.json();
 
+                // ซ่อนสปริ้นหลังจากโหลดเสร็จ
                 Swal.close();
 
+                // ค้นหาข้อมูลตาม userlineId
                 const filteredData = data.find(row => row[1] === userlineId);
 
                 if (filteredData) {
                     latestData = filteredData;
 
+                    // กรอกข้อมูลลงในฟอร์ม
                     document.getElementById('edit-id').value = filteredData[0];
                     document.getElementById('edit-userID').value = filteredData[1];
                     document.getElementById('edit-name').value = filteredData[2];
-                    document.getElementById('edit-phone').value = filteredData[3];
-                    document.getElementById('edit-email').value = filteredData[4];
+                    document.getElementById('edit-employeeID').value = filteredData[3];
+                    document.getElementById('edit-department').value = filteredData[4];
                     document.getElementById('edit-imageUrl').value = filteredData[5];
 
-updateImagePreview(); // อัปเดตการแสดงผลของรูปภาพ
-} else {
-Swal.fire({
-    title: 'Not Found',
-    text: 'ไม่พบข้อมูลที่ตรงกับ UserLineID นี้',
-    icon: 'warning',
-    confirmButtonText: 'OK'
-});
-}
-} catch (error) {
-console.error('Error fetching data:', error);
-Swal.fire({
-title: 'Error',
-text: 'Failed to fetch data. Please try again.',
-icon: 'error',
-confirmButtonText: 'OK'
-});
-}
-}
+                    updateImagePreview(); // อัปเดตการแสดงผลของรูปภาพ
+                } else {
+                    Swal.fire({
+                        title: 'Not Found',
+                        text: 'ไม่พบข้อมูลที่ตรงกับ UserLineID นี้',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to fetch data. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
 
-// ฟังก์ชันสำหรับล็อกหรือปลดล็อกฟอร์มและจัดการการแสดงผลปุ่ม
-function toggleFormEditing(enable) {
-const inputs = document.querySelectorAll('#edit-form input');
-const saveButton = document.querySelector('#edit-form button[type="submit"]');
-const cancelButton = document.querySelector('#edit-form button[type="button"]:not(#edit-button)');
-const imageUploadSection = document.getElementById('image-upload-section');
+        // ฟังก์ชันสำหรับล็อกหรือปลดล็อกฟอร์มและจัดการการแสดงผลปุ่ม
+        function toggleFormEditing(enable) {
+            const inputs = document.querySelectorAll('#edit-form input');
+            const saveButton = document.querySelector('#edit-form button[type="submit"]');
+            const cancelButton = document.querySelector('#edit-form button[type="button"]:not(#edit-button)');
+            const imageUploadSection = document.getElementById('image-upload-section');
 
-inputs.forEach(input => {
-input.disabled = !enable; // ปลดล็อก input
-});
+            inputs.forEach(input => {
+                input.disabled = !enable; // ปลดล็อก input
+            });
 
-if (enable) {
-saveButton.classList.remove('hidden');
-cancelButton.classList.remove('hidden');
-imageUploadSection.classList.remove('hidden'); // แสดงส่วนอัปโหลดรูปภาพ
-document.getElementById('edit-button').classList.add('hidden'); // ซ่อนปุ่ม Edit เมื่อทำการแก้ไข
-} else {
-saveButton.classList.add('hidden');
-cancelButton.classList.add('hidden');
-imageUploadSection.classList.add('hidden'); // ซ่อนส่วนอัปโหลดรูปภาพ
-document.getElementById('edit-button').classList.remove('hidden'); // แสดงปุ่ม Edit
-}
-}
+            if (enable) {
+                saveButton.classList.remove('hidden');
+                cancelButton.classList.remove('hidden');
+                imageUploadSection.classList.remove('hidden'); // แสดงส่วนอัปโหลดรูปภาพ
+                document.getElementById('edit-button').classList.add('hidden'); // ซ่อนปุ่ม Edit เมื่อทำการแก้ไข
+            } else {
+                saveButton.classList.add('hidden');
+                cancelButton.classList.add('hidden');
+                imageUploadSection.classList.add('hidden'); // ซ่อนส่วนอัปโหลดรูปภาพ
+                document.getElementById('edit-button').classList.remove('hidden'); // แสดงปุ่ม Edit
+            }
+        }
 
-// เพิ่ม event listener สำหรับปุ่มแก้ไขข้อมูล
-document.getElementById('edit-button').addEventListener('click', function () {
-toggleFormEditing(true); // ปลดล็อกฟอร์มเมื่อกดปุ่มแก้ไข
-});
+        // เพิ่ม event listener สำหรับปุ่มแก้ไขข้อมูล
+        document.getElementById('edit-button').addEventListener('click', function () {
+            toggleFormEditing(true); // ปลดล็อกฟอร์มเมื่อกดปุ่มแก้ไข
+        });
 
-// ฟังก์ชันสำหรับอัปเดตการแสดงผลของรูปภาพตาม URL ที่ป้อน
-function updateImagePreview() {
-const imageUrl = document.getElementById('edit-imageUrl').value;
-const imagePreview = document.getElementById('image-preview');
-imagePreview.src = imageUrl ? imageUrl : ''; // อัปเดต src ของรูปภาพ
-}
+        // ฟังก์ชันสำหรับอัปเดตการแสดงผลของรูปภาพตาม URL ที่ป้อน
+        function updateImagePreview() {
+            const imageUrl = document.getElementById('edit-imageUrl').value;
+            const imagePreview = document.getElementById('image-preview');
+            imagePreview.src = imageUrl ? imageUrl : ''; // อัปเดต src ของรูปภาพ
+        }
 
-// ฟังก์ชันสำหรับส่งฟอร์มและบันทึกข้อมูล
-document.getElementById('edit-form').addEventListener('submit', async function (e) {
-e.preventDefault();
+        // ฟังก์ชันสำหรับส่งฟอร์มและบันทึกข้อมูล
+        document.getElementById('edit-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-const id = document.getElementById('edit-id').value;
-const userID = document.getElementById('edit-userID').value;
-const name = document.getElementById('edit-name').value;
-const employeeID = document.getElementById('edit-employeeID').value;
-const department = document.getElementById('edit-department').value;
-const imageFile = document.getElementById('edit-image').files[0];
+            const id = document.getElementById('edit-id').value;
+            const userID = document.getElementById('edit-userID').value;
+            const name = document.getElementById('edit-name').value;
+            const employeeID = document.getElementById('edit-employeeID').value;
+            const department = document.getElementById('edit-department').value;
+            const imageFile = document.getElementById('edit-image').files[0];
 
-let imageUrl = document.getElementById('edit-imageUrl').value;
+            let imageUrl = document.getElementById('edit-imageUrl').value;
 
-// แสดงผลการโหลด
-Swal.fire({
-title: 'อัพเดทข้อมูล...',
-text: 'รอสักครู่ อัพโหลดข้อมูลของคุณ..',
-allowOutsideClick: false,
-didOpen: () => {
-Swal.showLoading(); // แสดง spinner
-}
-});
+            // แสดงผลการโหลด
+            Swal.fire({
+                title: 'อัพเดทข้อมูล...',
+                text: 'รอสักครู่ อัพโหลดข้อมูลของคุณ..',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading(); // แสดง spinner
+                }
+            });
 
-try {
-let result;
-if (imageFile) {
-const base64Image = await getBase64(imageFile); // แปลงไฟล์เป็น Base64
-result = await updateData(id, userID, name, employeeID, department, base64Image);
-} else {
-result = await updateData(id, userID, name, employeeID, department, imageUrl);
-}
+            try {
+                let result;
+                if (imageFile) {
+                    const base64Image = await getBase64(imageFile); // แปลงไฟล์เป็น Base64
+                    result = await updateData(id, userID, name, employeeID, department, base64Image);
+                } else {
+                    result = await updateData(id, userID, name, employeeID, department, imageUrl);
+                }
 
-// ตรวจสอบผลลัพธ์ที่ได้รับ
-if (result && result.includes('Data updated')) {
-Swal.fire({
-    title: 'เสร็จสิ้น',
-    text: 'ได้บันทึกข้อมูลของคุณแล้ว!',
-    icon: 'success',
-    confirmButtonText: 'OK'
-});
-await initializeLiff(); // อัปเดตข้อมูลในฟอร์มหลังจากบันทึกข้อมูลสำเร็จ
-} else {
-throw new Error(result || 'Failed to save data');
-}
+                // ตรวจสอบผลลัพธ์ที่ได้รับ
+                if (result && result.includes('Data updated')) {
+                    Swal.fire({
+                        title: 'เสร็จสิ้น',
+                        text: 'ได้บันทึกข้อมูลของคุณแล้ว!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                    await initializeLiff(); // อัปเดตข้อมูลในฟอร์มหลังจากบันทึกข้อมูลสำเร็จ
+                } else {
+                    throw new Error(result || 'Failed to save data');
+                }
 
-} catch (error) {
-console.error('Error saving data:', error);
-Swal.fire({
-title: 'ผิดพลาด',
-text: error.message || 'มีบางอย่างไม่ถูกต้อง.',
-icon: 'error',
-confirmButtonText: 'OK'
-});
-} finally {
-cancelEdit();
-}
-});
+            } catch (error) {
+                console.error('Error saving data:', error);
+                Swal.fire({
+                    title: 'ผิดพลาด',
+                    text: error.message || 'มีบางอย่างไม่ถูกต้อง.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } finally {
+                cancelEdit();
+            }
+        });
 
-// ฟังก์ชันยกเลิกการแก้ไขและรีเซ็ตฟอร์ม
-function cancelEdit() {
-document.getElementById('edit-form').reset();
-document.getElementById('edit-id').value = latestData[0];
-document.getElementById('edit-userID').value = latestData[1];
-document.getElementById('edit-name').value = latestData[2];
-document.getElementById('edit-employeeID').value = latestData[3];
-document.getElementById('edit-department').value = latestData[4];
-document.getElementById('edit-imageUrl').value = latestData[5];
+        // ฟังก์ชันยกเลิกการแก้ไขและรีเซ็ตฟอร์ม
+        function cancelEdit() {
+            document.getElementById('edit-form').reset();
+            document.getElementById('edit-id').value = latestData[0];
+            document.getElementById('edit-userID').value = latestData[1];
+            document.getElementById('edit-name').value = latestData[2];
+            document.getElementById('edit-employeeID').value = latestData[3];
+            document.getElementById('edit-department').value = latestData[4];
+            document.getElementById('edit-imageUrl').value = latestData[5];
 
-updateImagePreview(); // อัปเดตการแสดงผลของรูปภาพ
-toggleFormEditing(false); // ล็อกฟอร์มอีกครั้งหลังจากรีเซ็ต
-}
+            updateImagePreview(); // อัปเดตการแสดงผลของรูปภาพ
+            toggleFormEditing(false); // ล็อกฟอร์มอีกครั้งหลังจากรีเซ็ต
+        }
 
-// ฟังก์ชันสำหรับอัปเดตข้อมูลไปยังเซิร์ฟเวอร์
-async function updateData(id, userID, name, employeeID, department, base64Image) {
-const response = await fetch(WEB_APP_URL, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/x-www-form-urlencoded'
-},
-body: `method=updateData&id=${id}&userID=${encodeURIComponent(userID)}&name=${encodeURIComponent(name)}&employeeID=${encodeURIComponent(employeeID)}&department=${encodeURIComponent(department)}&imageUrl=${encodeURIComponent(base64Image)}`
-});
-const result = await response.text();
+        // ฟังก์ชันสำหรับอัปเดตข้อมูลไปยังเซิร์ฟเวอร์
+        async function updateData(id, userID, name, employeeID, department, base64Image) {
+            const response = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `method=updateData&id=${id}&userID=${encodeURIComponent(userID)}&name=${encodeURIComponent(name)}&employeeID=${encodeURIComponent(employeeID)}&department=${encodeURIComponent(department)}&imageUrl=${encodeURIComponent(base64Image)}`
+            });
+            const result = await response.text();
 
-// ตรวจสอบว่าผลลัพธ์ที่ได้มีเนื้อหาหรือไม่
-if (!result || result.trim() === '') {
-throw new Error('Empty response from server');
-}
+            // ตรวจสอบว่าผลลัพธ์ที่ได้มีเนื้อหาหรือไม่
+            if (!result || result.trim() === '') {
+                throw new Error('Empty response from server');
+            }
 
-return result;
-}
+            return result;
+        }
 
-// ฟังก์ชันสำหรับแปลงไฟล์เป็น Base64
-function getBase64(file) {
-return new Promise((resolve, reject) => {
-let reader = new FileReader();
-reader.onload = () => resolve(reader.result.split(',')[1]);
-reader.onerror = error => reject(error);
-reader.readAsDataURL(file);
-});
-}
+        // ฟังก์ชันสำหรับแปลงไฟล์เป็น Base64
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
 
-</script>
+    </script>
 </body>
 
 </html>
-
