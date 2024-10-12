@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,10 +32,10 @@
                     <input type="text" class="input-field w-full border border-slate-300 p-2 text-md rounded-lg" id="nameId" placeholder="ชื่อ-สกุล" name="nameId" required>
                 </div>
                 <div class="mb-4">
-                    <input type="text" class="input-field w-full border border-slate-300 p-2 text-md rounded-lg" id="keynumberId" placeholder="เบอร์โทรศัพท์" name="keynumberId" required>
+                    <input type="text" class="input-field w-full border border-slate-300 p-2 text-md rounded-lg" id="keynumberId" placeholder="รหัสพนักงาน" name="keynumberId" required>
                 </div>
                 <div class="mb-6">
-                    <input type="text" class="input-field w-full border border-slate-300 p-2 text-md rounded-lg" id="keynumber2Id" placeholder="E-mail" name="keynumber2Id" required>
+                    <input type="text" class="input-field w-full border border-slate-300 p-2 text-md rounded-lg" id="keynumber2Id" placeholder="ตำแหน่ง" name="keynumber2Id" required>
                 </div>
                 </div>
                 <button type="button" id="submitBtn" class="bg-slate-800 text-center w-full text-white py-4 px-4 rounded-lg hover:bg-blue-700">บันทึกข้อมูล</button>
@@ -44,10 +45,11 @@
 <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 <script>
 
-// ลิ้งจาก ระบบสมาชิก
-const WEB_APP_URL = 'xxxxxxxx Google app script member XXXXXXX'; 
-// Liff ไอดีไล์เรียกใช้หน้าข้อมูลส่วนตัว
-const LIFF_ID = 'xxxxxxxx LINE LIFF id XXXXXXX'; // LIFF ID
+	// ลิ้งจาก ระบบสมาชิก
+    const WEB_APP_URL = 'xxxxxxxx Google app script member XXXXXXX'; 
+     // Liff ไอดีไล์เรียกใช้หน้าข้อมูลส่วนตัว
+    const LIFF_ID = '2006172571-8jbd6Mdd'; // LIFF ID
+
 
 // ฟังก์ชันเริ่มต้น LIFF SDK
 window.onload = function () {
@@ -56,7 +58,7 @@ window.onload = function () {
 
 // ฟังก์ชันสำหรับเริ่มต้น LIFF SDK
 async function initializeLiff() {
-    await liff.init({ liffId: LIFF_ID });
+    await liff.init({ liffId: `${2006172571-8jbd6Mdd}` });
 
     if (liff.isLoggedIn()) {
         getUserProfile();
@@ -144,7 +146,7 @@ async function sendFlexMessage() {
                                 contents: [
                                     {
                                         type: 'text',
-                                        text: 'เบอร์โทรศัพท์',
+                                        text: 'รหัสพนักงาน',
                                         size: 'sm',
                                         color: '#555555',
                                         flex: 1
@@ -165,7 +167,7 @@ async function sendFlexMessage() {
                                 contents: [
                                     {
                                         type: 'text',
-                                        text: 'E-mail',
+                                        text: 'อีเมล',
                                         size: 'sm',
                                         color: '#555555',
                                         flex: 1
@@ -203,7 +205,7 @@ async function sendFlexMessage() {
     await liff.sendMessages([flexMessage]);
 }
 
-let url = `${WEB_APP_URL}`;
+let url = "https://script.google.com/macros/s/AKfycbz8O2wNyLVvdm801AOz6KHoPAgE64RVIE2Jcu53cF8ujgUYtAAHis9k61yuMXlMu6wm/exec";
 let fileInput = document.getElementById("file");
 let imgPreview = document.getElementById("preview");
 let userlineIdInput = document.getElementById("userlineId");
@@ -257,7 +259,7 @@ function validateForm() {
     return true;
 }
 
-// เพิ่ม event listener สำหรับปุ่มบันทึกข้อมูล
+// เพิ่ม event listener สำหรับปุ่มบันทึกข้อมูล     
 submitBtn.addEventListener('click', async (event) => {
     event.preventDefault();
 
@@ -265,7 +267,7 @@ submitBtn.addEventListener('click', async (event) => {
         Swal.fire({
             icon: 'error',
             title: 'Validation Error',
-            text: 'กรุณากรอกข้อมูลในช่องให้ครบ.',
+            text: 'กรุณากรอกข้อมูลในช่องที่จำเป็น',
         });
         return;
     }
@@ -341,7 +343,7 @@ submitBtn.addEventListener('click', async (event) => {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'เกิดข้อผิดพลาดขณะส่งข้อมูล.',
+                text: 'เกิดข้อผิดพลาดขณะส่งข้อมูล',
             });
 
             console.error(error);
@@ -349,7 +351,7 @@ submitBtn.addEventListener('click', async (event) => {
             submitBtn.disabled = false;
         }
     } else {
-        Swal.fire('Submission Canceled', 'ข้อมูลของคุณไม่ได้ถูกส่ง.', 'info');
+        Swal.fire('Submission Canceled', 'ข้อมูลของคุณไม่ได้ถูกส่ง', 'info');
     }
 });
 
@@ -369,4 +371,3 @@ async function showConfirmationDialog() {
 </script>
 </body>
 </html>
-   
